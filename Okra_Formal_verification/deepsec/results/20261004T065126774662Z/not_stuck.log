@@ -1,0 +1,11 @@
+DeepSec - DEciding Equivalence Properties for SECurity protocols
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Loading file /Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/not_stuck.dps...
+
+Internal Error: Unix.Unix_error(Unix.EPERM, "mkdir", "/Users/zengpeng/Library/Application Support/DeepSec/result_files/mm-dpc_holy")
+Please report the bug to vincent.cheval@loria.fr with the input file and output

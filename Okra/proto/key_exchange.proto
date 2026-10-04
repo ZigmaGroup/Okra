@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package keyexchange;
+
+// 请求节点A或B发送其公钥
+message KeyExchangeRequest {
+  string node_id = 1;    // 节点ID，区分节点A和节点B
+  bytes public_key = 2;  // 节点公钥
+}
+
+// 响应中心服务返回的节点公钥
+message KeyExchangeResponse {
+  string node_id = 1;    // 响应节点的ID
+  bytes public_key = 2;  // 响应节点的公钥
+}
+
+// 密钥交换的服务定义
+service KeyExchangeService {
+  rpc ExchangeKey(KeyExchangeRequest) returns (KeyExchangeResponse);
+}
+

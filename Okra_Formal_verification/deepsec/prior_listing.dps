@@ -1,0 +1,42 @@
+free rp.
+fun sign/2. fun pk/1. fun hash/1.
+fun blind/2. fun unblind/2. fun report/3. fun true/0.
+
+reduc unblind(sign(blind(x,r),k),r)=sign(x,k);
+      checksign(sign(x,k),x,pk(k))=true.
+
+let Issuer(c,sk_reg,sk_tok) =
+   in(c,(ak,cred,nonce,req,ev));
+   if checksign(cred,hash(ak),pk(sk_reg))=true then
+      out(c,sign(req,sk_tok)).
+
+let Session(ak,cred,sk_reg,sk_tok,nonce) =
+   new c;
+   (Issuer(c,sk_reg,sk_tok)
+   | new r;
+     let req=blind(hash(nonce),r) in
+     out(c,(ak,cred,nonce,req,report(ak,nonce,req)));
+     in(c,resp);
+     let tok=unblind(resp,r) in
+     if checksign(tok,hash(nonce),pk(sk_tok))=true then
+        out(rp,(nonce,tok))).
+
+let TwoSessions(ak0,ak1,sk_reg,sk_tok) =
+   new r0; new r1;
+   let cred0=unblind(sign(blind(hash(ak0),r0),sk_reg),r0) in
+   let cred1=unblind(sign(blind(hash(ak1),r1),sk_reg),r1) in
+   in(rp,nonce0);
+   in(rp,nonce1);
+   (Session(ak0,cred0,sk_reg,sk_tok,nonce0)
+   | Session(ak1,cred1,sk_reg,sk_tok,nonce1)).
+
+let Left =
+   new sk_reg; new sk_tok; new ak0; new ak1;
+   out(rp,(pk(sk_reg),pk(sk_tok)));
+   TwoSessions(ak0,ak0,sk_reg,sk_tok).
+
+let Right =
+   new sk_reg; new sk_tok; new ak0; new ak1;
+   out(rp,(pk(sk_reg),pk(sk_tok)));
+   TwoSessions(ak0,ak1,sk_reg,sk_tok).
+query trace_equiv(Left,Right).

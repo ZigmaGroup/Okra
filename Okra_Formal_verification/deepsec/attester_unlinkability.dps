@@ -1,0 +1,47 @@
+// Successful registration and appraisal are assumed.
+// Completed issuance is abstracted by its canonical RSA-FDH signature.
+// This model does not encode blind-RSA algebra or issuer unlinkability.
+set semantics = private.
+free rp.
+fun sign/2. fun pk/1. fun hash/1. fun true/0.
+reduc checksign(sign(m,k),m,pk(k))=true.
+
+let Issuer(c,sk_reg,sk_tok) =
+   in(c,msg);
+   let (ak,cred,nonce) = msg in
+   if checksign(cred,hash(ak),pk(sk_reg))=true then
+      out(c,sign(hash(nonce),sk_tok)).
+
+let Session(ak,cred,sk_reg,sk_tok,nonce,done) =
+   new c;
+   (Issuer(c,sk_reg,sk_tok)
+   | out(c,(ak,cred,nonce));
+     in(c,tok);
+     if checksign(tok,hash(nonce),pk(sk_tok))=true then
+        out(done,tok)).
+
+let TwoSessions(ak0,ak1,sk_reg,sk_tok) =
+   let cred0=sign(hash(ak0),sk_reg) in
+   let cred1=sign(hash(ak1),sk_reg) in
+   new done0; new done1;
+   in(rp,nonce0);
+   (Session(ak0,cred0,sk_reg,sk_tok,nonce0,done0)
+   | in(done0,tok0);
+     out(rp,(nonce0,tok0));
+     in(rp,nonce1);
+     if nonce1=nonce0 then 0 else
+     (Session(ak1,cred1,sk_reg,sk_tok,nonce1,done1)
+     | in(done1,tok1);
+       out(rp,(nonce1,tok1)))).
+
+let Left =
+   new sk_reg; new sk_tok; new ak0;
+   out(rp,(pk(sk_reg),pk(sk_tok)));
+   TwoSessions(ak0,ak0,sk_reg,sk_tok).
+
+let Right =
+   new sk_reg; new sk_tok; new ak0; new ak1;
+   out(rp,(pk(sk_reg),pk(sk_tok)));
+   TwoSessions(ak0,ak1,sk_reg,sk_tok).
+
+query trace_equiv(Left,Right).

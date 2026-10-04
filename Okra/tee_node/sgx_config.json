@@ -1,0 +1,11 @@
+{
+  "cert_and_key_file_path": "/key/", 
+  "node_id": "sgx_node" ,
+  "center_attestation_service": "10.93.116.55:40060",
+  "center_key_exchange_service": "10.93.116.55:50051",
+  "listen_port": "40070",
+  "csr_field" : {
+    "organization_name" : "Intel",
+    "common_name" : "sgx"
+  }
+}

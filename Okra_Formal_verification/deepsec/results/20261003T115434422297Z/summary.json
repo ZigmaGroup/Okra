@@ -1,0 +1,143 @@
+{
+  "utc": "2026-10-03T11:54:34.564703+00:00",
+  "listing_checked": true,
+  "deepsec": "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+  "cases": [
+    {
+      "case": "rp_unlinkability",
+      "expected": "equivalent",
+      "observed": "equivalent",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.0237,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/attester_unlinkability.dps",
+      "sha256": "f625d86cb9081d1ef2bdf37064576c8fca733e443665019d0588032e039b33bf",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/attester_unlinkability.dps"
+      ]
+    },
+    {
+      "case": "identity_leak",
+      "expected": "not_equivalent",
+      "observed": "not_equivalent",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.0232,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/identity_leak.dps",
+      "sha256": "c3d2c44267ea2b14d53990269ab9a9e7afa5c5ac49e68c37bb5a66898b5c245d",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/identity_leak.dps"
+      ]
+    },
+    {
+      "case": "issuance_leak",
+      "expected": "not_equivalent",
+      "observed": "not_equivalent",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.0238,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/issuance_leak.dps",
+      "sha256": "58694430c89519f08d9b60d4e69f6bd615df394803ce703c3d2f098aba1894de",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/issuance_leak.dps"
+      ]
+    },
+    {
+      "case": "canonical_outputs",
+      "expected": "equivalent",
+      "observed": "equivalent",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.0232,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/canonical_outputs.dps",
+      "sha256": "3250f747d20ee2deefa85d6bc7b09f82f544ddffd670f5be3cef1d429a4cebff",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/canonical_outputs.dps"
+      ]
+    },
+    {
+      "case": "not_stuck",
+      "expected": "not_equivalent",
+      "observed": "not_equivalent",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.0237,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/not_stuck.dps",
+      "sha256": "5a95703ca11cfa227fc25b21b0d0d7d7c51053e33ccf766511913c04c441cd52",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/generated/not_stuck.dps"
+      ]
+    },
+    {
+      "case": "original_submitted",
+      "expected": "parser_error",
+      "observed": "parser_error",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.0054,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/original_submitted.dps",
+      "sha256": "12c903366a58fdcbe72a1534c3ad1f0e1eeb5ac4a8e660a164e7349d506a4519",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/original_submitted.dps"
+      ]
+    },
+    {
+      "case": "prior_listing",
+      "expected": "parser_error",
+      "observed": "parser_error",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.005,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/prior_listing.dps",
+      "sha256": "3224731d17e9807fb7a0e2682aa8575cca046d94ccb920d51095d435a9955111",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/prior_listing.dps"
+      ]
+    },
+    {
+      "case": "unsupported_unblinding",
+      "expected": "parser_error",
+      "observed": "parser_error",
+      "passed": true,
+      "exit_code": 0,
+      "wall_seconds": 0.0051,
+      "model": "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/unsupported_unblinding.dps",
+      "sha256": "9871c967deba31a74cc12553e18808884a1e7723cb8012b633cda74be198b73c",
+      "command": [
+        "/Users/zengpeng/Documents/ChatGPT/New project/tools/deepsec/deepsec",
+        "--distributed",
+        "false",
+        "--trace",
+        "/Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/unsupported_unblinding.dps"
+      ]
+    }
+  ]
+}

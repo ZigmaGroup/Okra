@@ -1,0 +1,86 @@
+DeepSec - DEciding Equivalence Properties for SECurity protocols
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Usage
+    deepsec [OPTIONS] ... FILE
+
+
+Description
+    deepsec analyses each specified FILE.
+
+
+General options
+    -s, --semantics VALUE (default=private)
+        Specify the default semantics of the process calculus. The value VALUE must be one of
+        'private', 'classic' or 'eavesdrop'. With 'classic', deepsec allows internal communication
+        on public channels. With 'private', internal communications are only allowed on private
+        channels. With 'eavesdrop', the attacker is allowed to eavesdrop on public channels.
+        For more details, see the following paper by Babel, Cheval, Kremer:
+          'On Communication Models When Verifying Equivalence Properties'
+
+
+    -p, --por BOOL (default=true)
+        When 'true', deepsec applies Partial Order Reduction (POR) techniques to verify trace
+        equivalence. POR can only be applied on action determinate processes. Thus, even
+        with 'true', deepsec will apply the POR techniques only when it is able to prove that
+        the processes are action-determinate.
+
+
+    -t, --title TITLE
+        Set TITLE as the title of this run (displayed only with the UI).
+
+
+    -q, --quiet
+        Only display the result of query verification.
+
+
+    --trace
+        When an attack is found, display the full trace with the execution of the process.
+        Incompatible with --quiet.
+
+
+    -h, -help, --help
+        Show this help.
+
+
+Options for distributing computation
+    -d, --distributed VALUE (default=auto)
+        Specify if the computation should be distributed. The value VALUE must be one of
+        'auto', 'true' or 'false'. With 'auto', deepsec will activates the distributed
+        computation depending on the number of physical cores in your computer. With 'true',
+        deepsec activates the distributed computation even if your computer only has one core.
+
+
+    -l, --local_workers INT
+        Set the number of local workers to INT. Automatically set --distributed to 'true'.
+        deepsec distributes the computation amongst the local workers and distant workers.
+
+
+    -w, --distant_workers HOST PATH VALUE
+        Allow the computation to be also distributed on the distant machine HOST.
+        PATH must be the path on HOST to the directory that contains the deepsec executable.
+        The value VALUE represents the number of workers used on the distant machine. VALUE must
+        be either 'auto' or an integer. With 'auto', deepsec will set the number of workers
+        as the number of physical cores on the distant machine. When VALUE is an integer,
+        the number of workers on the distant machine will be set to VALUE.
+        Note: It is possible to rely on multiple distant machine by using several instances
+        of --distant_workers. Automatically set --distributed to 'true'.
+
+
+    -j, --jobs INT
+        Set the number of jobs to INT. Automatically set --distributed to 'true'.
+        deepsec generates at least INT jobs before distributing them amongts the workers.
+        The default number of jobs is computed as 100 times the total number of workers.
+
+
+    -r, --round_timer INT (default=120)
+        As the computation load for each job may vary greatly, it may happen that some workers
+        become ilde. When such case occurs, deepsec starts a countdown of INT seconds. If the
+        computation did not complete before the end of the countdown, deepsec generates a new
+        set of jobs based on the remaining jobs and redistributes them amongst the workers.
+        This redistribution of jobs signals the start of a new round of computation.
+        Automatically set --distributed to 'true'.

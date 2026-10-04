@@ -1,0 +1,4 @@
+free rp.
+fun sign/2. fun blind/2.
+reduc unblind(sign(blind(m,r),k),r)=sign(m,k).
+query trace_equiv(0,0).

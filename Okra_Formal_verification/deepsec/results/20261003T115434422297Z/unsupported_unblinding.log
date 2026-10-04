@@ -1,0 +1,11 @@
+DeepSec - DEciding Equivalence Properties for SECurity protocols
+    Version: 2.0.2
+    Git hash: 8ddc45ec79de5ec49810302ea7da32d3dc9f46e4
+    Git branch: master
+    Website: https://deepsec-prover.github.io
+
+
+Loading file /Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/unsupported_unblinding.dps...
+
+Error on file /Users/zengpeng/Documents/ChatGPT/New project/tmp/current_zip/TDSC-Okra-major/formal/deepsec/unsupported_unblinding.dps:
+   Line 3, Characters 0-46: The rewrite rule unblind(sign(blind(x,x_1),x_2),x_1) -> sign(x,x_2) is not subterm.

@@ -1,0 +1,249 @@
+/*
+ * Okra: nonce-only ORA, following the revised construction supplied in
+ * Downloads/HeteroRA_Okra/TDSC-Okra-major/body/scheme.tex (2026-10-04).
+ * Complete executable SINGLE-ISSUER symbolic model, not RSA arithmetic.
+ * Independent registration/token keys; reusable registered-key credential;
+ * protected measured request generation; authenticated confidential channels;
+ * evidence/key/nonce/blinded-request binding; cached exact retries; linear RP
+ * challenge consumption. Unlimited rule instances; fixed policy per key.
+ *
+ * TRUSTED ABSTRACTIONS: authenticated provisioning/PKI and channel-key setup,
+ * sound native evidence/accepted generator, fixed accepted measurements,
+ * atomic durable service transaction uniqueness (restriction below).
+ * No TCB/key compromise, TLS handshake, clocks, revocation/quota transitions,
+ * threshold shares, RSA algebra, one-more reduction, or privacy equivalence.
+ * Expiry is nondeterministic challenge cancellation, not a real-time bound.
+ *
+ * The extra rewrite rule is terminating by term size and has no root or
+ * nonvariable-subterm overlap with itself or the builtin destructor rules.
+ * Its normal form is the canonical signature. [convergent] declares this
+ * simple symbolic algebra; it is not a claim about RSA's algebraic security.
+ * Blindness/unlinkability is NOT inferred from opaque blind constructors.
+ */
+theory Okra_Nonce_Only
+begin
+
+builtins: signing, hashing
+functions: blind/2, bsign/2, unblind/2
+equations [convergent]:
+  unblind(bsign(blind(m,r),k),r) = sign(m,k)
+
+macros:
+  regmsg(ak) = h(<'registration',ak>),
+  tokmsg(nonce) = h(<'token',nonce>),
+  regbody(pkG,ak,c,bm,meas) =
+    <'evidence',meas,h(<'ORA-register',pkG,c,ak,bm>)>,
+  attbody(pkT,ak,nonce,bm,meas) =
+    <'evidence',meas,h(<'ORA-attest',pkT,ak,nonce,bm>)>
+
+/* The authenticated configuration substitutes for certification and TLS
+ * handshakes. Channel keys are fresh and independent of all signing keys.
+ */
+rule ServiceSetup:
+  [ Fr(~V), Fr(~skG), Fr(~skT) ]
+  --[ Secret(~skG), Secret(~skT) ]->
+  [ !Service(~V,~skG,~skT), !Configuration(~V,pk(~skG),pk(~skT)),
+    Out(<~V,pk(~skG),pk(~skT)>) ]
+
+rule PlatformProvision:
+  [ !Configuration(V,pkG,pkT), Fr(~P), Fr(~skA), Fr(~meas), Fr(~ch) ]
+  --[ Secret(~skA), Secret(~ch), PrivateAttestationData(~meas) ]->
+  [ !Platform(~P,V,~skA,pkG,pkT,~meas,~ch),
+    !EnrollmentIdentity(V,~P,pk(~skA),~meas,~ch),
+    Out(<~P,pk(~skA)>) ]
+
+rule RegistrationChallenge:
+  [ !EnrollmentIdentity(V,P,ak,meas,ch), Fr(~c) ]
+  --[ EnrollmentStarted(V,P,ak,~c) ]->
+  [ RegPending(V,P,ak,meas,ch,~c),
+    Send(ch,<'reg-challenge',V,P,~c>) ]
+
+rule PrepareRegistration:
+  let
+    ak = pk(skA)
+    bm = blind(regmsg(ak),~r)
+    report = sign(regbody(pkG,ak,c,bm,meas),skA)
+  in
+  [ !Platform(P,V,skA,pkG,pkT,meas,ch),
+    Receive(ch,<'reg-challenge',V,P,c>), Fr(~r) ]
+  --[ RegistrationGenerated(P,V,ak,c,bm,meas,report) ]->
+  [ RegLocal(P,V,ak,pkG,pkT,meas,ch,c,~r),
+    Send(ch,<'reg-request',P,V,ak,c,bm,meas,report>) ]
+
+rule AcceptRegistration:
+  let beta = bsign(bm,skG) in
+  [ !Service(V,skG,skT), RegPending(V,P,ak,meas,ch,c),
+    Receive(ch,<'reg-request',P,V,ak,c,bm,meas,report>) ]
+  --[ Eq(verify(report,regbody(pk(skG),ak,c,bm,meas),ak),true),
+      RegistrationAccepted(V,P,ak) ]->
+  [ !Registered(V,P,ak,pk(skT),meas,ch),
+    !RegCache(V,P,ak,c,bm,meas,report,ch,beta),
+    Send(ch,<'reg-response',V,P,c,beta>) ]
+
+rule RetryRegistration:
+  [ !RegCache(V,P,ak,c,bm,meas,report,ch,beta),
+    Receive(ch,<'reg-request',P,V,ak,c,bm,meas,report>) ]
+  --[ RegistrationRetried(V,P,ak,c) ]->
+  [ Send(ch,<'reg-response',V,P,c,beta>) ]
+
+rule FinalizeRegistration:
+  let cred = unblind(beta,r) in
+  [ RegLocal(P,V,ak,pkG,pkT,meas,ch,c,r),
+    Receive(ch,<'reg-response',V,P,c,beta>) ]
+  --[ Eq(verify(cred,regmsg(ak),pkG),true),
+      CredentialStored(P,V,ak) ]->
+  [ !Credential(P,V,ak,pkG,pkT,meas,ch,cred) ]
+
+/* Nonces are intentionally public. Outstanding is a LINEAR fact; expiry
+ * and acceptance compete to consume it. No bound on the number of sessions.
+ */
+rule RPChallenge:
+  [ !Configuration(V,pkG,pkT), Fr(~nonce) ]
+  --[ ChallengeIssued($R,V,pkT,~nonce) ]->
+  [ Outstanding($R,V,pkT,~nonce), Out(~nonce) ]
+
+rule ExpireChallenge:
+  [ Outstanding(R,V,pkT,nonce) ]
+  --[ ChallengeExpired(R,V,pkT,nonce) ]->
+  [ ]
+
+rule PrepareAttestation:
+  let
+    ak = pk(skA)
+    bm = blind(tokmsg(nonce),~r)
+    report = sign(attbody(pkT,ak,nonce,bm,meas),skA)
+  in
+  [ !Platform(P,V,skA,pkG,pkT,meas,ch),
+    !Credential(P,V,ak,pkG,pkT,meas,ch,cred),
+    In(nonce), Fr(~r) ]
+  --[ RequestGenerated(P,V,ak,pkT,nonce,bm,meas,report),
+      PrivateAttestationData(report) ]->
+  [ !AttLocal(P,V,ak,pkT,nonce,bm,meas,report,ch,~r),
+    Send(ch,<'att-request',P,V,cred,nonce,bm,meas,report>) ]
+
+rule AuthorizeAndIssue:
+  let beta = bsign(bm,skT) in
+  [ !Service(V,skG,skT), !Registered(V,P,ak,pk(skT),meas,ch),
+    Receive(ch,<'att-request',P,V,cred,nonce,bm,meas,report>) ]
+  --[ Eq(verify(cred,regmsg(ak),pk(skG)),true),
+      Eq(verify(report,attbody(pk(skT),ak,nonce,bm,meas),ak),true),
+      Reserve(P,V,ak,pk(skT),nonce),
+      EvidenceAppraised(V,P,ak,pk(skT),nonce,bm,meas,report),
+      ServiceAuthorized(V,P,ak,pk(skT),nonce,bm,meas,report),
+      TokenIssued(V,pk(skT),nonce) ]->
+  [ !AttCache(V,P,ak,pk(skT),cred,nonce,bm,meas,report,ch,beta),
+    Send(ch,<'att-response',V,P,nonce,bm,beta>) ]
+
+/* An exact request can receive the cached response repeatedly; this does not
+ * emit a fresh TokenIssued event or consume the reusable credential.
+ */
+rule RetryAttestation:
+  [ !AttCache(V,P,ak,pkT,cred,nonce,bm,meas,report,ch,beta),
+    Receive(ch,<'att-request',P,V,cred,nonce,bm,meas,report>) ]
+  --[ IssuanceRetried(V,P,ak,pkT,nonce) ]->
+  [ Send(ch,<'att-response',V,P,nonce,bm,beta>) ]
+
+rule FinalizeToken:
+  let sig = unblind(beta,r) in
+  [ !AttLocal(P,V,ak,pkT,nonce,bm,meas,report,ch,r),
+    Receive(ch,<'att-response',V,P,nonce,bm,beta>) ]
+  --[ Eq(verify(sig,tokmsg(nonce),pkT),true),
+      TokenFinalized(P,V,pkT,nonce,<nonce,sig>) ]->
+  [ Out(<nonce,sig>) ]
+
+rule RPAccept:
+  [ Outstanding(R,V,pkT,nonce), In(<nonce,sig>) ]
+  --[ Eq(verify(sig,tokmsg(nonce),pkT),true),
+      TokenAccepted(R,V,pkT,nonce,<nonce,sig>) ]->
+  [ ]
+
+/* Ideal authenticated confidential channel. Public opaque handles let the
+ * network adversary delay, reorder, suppress and replay delivery. The channel
+ * establishes neither timeliness nor secrecy from its authorized endpoints.
+ */
+rule ChannelSend:
+  [ Send(ch,msg), Fr(~wire) ]
+  --[ ]->
+  [ !Wire(ch,msg,~wire), Out(~wire) ]
+
+rule ChannelDeliver:
+  [ !Wire(ch,msg,wire), In(wire) ]
+  --[ ]->
+  [ Receive(ch,msg) ]
+
+restriction Equality:
+  "All x y #i. Eq(x,y) @i ==> x = y"
+
+/* Explicit idealization of the atomic check/reserve/record service store.
+ * It restricts fresh issuance, NOT network retries or RP acceptance.
+ * Distributed implementation/consensus is not proved by this restriction.
+ */
+restriction AtomicTransaction:
+  "All P V ak pkT nonce #i #j.
+     Reserve(P,V,ak,pkT,nonce) @i
+     & Reserve(P,V,ak,pkT,nonce) @j ==> #i = #j"
+
+lemma executable:
+  exists-trace
+  "Ex R V pkT nonce theta #i. TokenAccepted(R,V,pkT,nonce,theta) @i"
+
+lemma credential_reuse:
+  exists-trace
+  "Ex V P ak pkT n1 n2 bm1 bm2 m rep1 rep2 #i #j.
+     ServiceAuthorized(V,P,ak,pkT,n1,bm1,m,rep1) @i
+     & ServiceAuthorized(V,P,ak,pkT,n2,bm2,m,rep2) @j
+     & not (n1 = n2) & #i < #j"
+
+lemma cached_retry:
+  exists-trace
+  "Ex V P ak pkT nonce #i. IssuanceRetried(V,P,ak,pkT,nonce) @i"
+
+/* L1: O-W-Non-I-Agree-V-P on the full registered request. */
+lemma L1_registered_attester [reuse]:
+  "All V P ak pkT nonce bm meas report #i.
+     ServiceAuthorized(V,P,ak,pkT,nonce,bm,meas,report) @i
+     ==> (Ex #r #j.
+       RegistrationAccepted(V,P,ak) @r
+       & RequestGenerated(P,V,ak,pkT,nonce,bm,meas,report) @j
+       & #r < #j & #j < #i)"
+
+/* L2: one-way token-origin correspondence R -> V. V does not name R, so
+ * this is NOT full Lowe peer-identity agreement between R and V.
+ */
+lemma L2_authorized_issuance [reuse]:
+  "All R V pkT nonce theta #i.
+     TokenAccepted(R,V,pkT,nonce,theta) @i
+     ==> (Ex #j. TokenIssued(V,pkT,nonce) @j & #j < #i)"
+
+/* L3: evidence/request agreement V -> P plus challenge-relative freshness
+ * on the acceptance chain. Measurements/report are NOT token claims.
+ */
+lemma L3_evidence_binding:
+  "All R V pkT nonce theta #i.
+     TokenAccepted(R,V,pkT,nonce,theta) @i
+     ==> (Ex P ak bm meas report #c #j #k.
+       ChallengeIssued(R,V,pkT,nonce) @c
+       & RequestGenerated(P,V,ak,pkT,nonce,bm,meas,report) @j
+       & EvidenceAppraised(V,P,ak,pkT,nonce,bm,meas,report) @k
+       & ServiceAuthorized(V,P,ak,pkT,nonce,bm,meas,report) @k
+       & #c < #j & #j < #k & #k < #i)"
+
+lemma L4_key_secrecy:
+  "All x #i. Secret(x) @i ==> not (Ex #j. K(x) @j)"
+
+lemma L5_data_confidentiality:
+  "All x #i. PrivateAttestationData(x) @i
+     ==> not (Ex #j. K(x) @j)"
+
+/* Replay prevention is checked, not imposed as a trace restriction. */
+lemma L6_single_acceptance:
+  "All R V pkT nonce theta R2 theta2 #i #j.
+     TokenAccepted(R,V,pkT,nonce,theta) @i
+     & TokenAccepted(R2,V,pkT,nonce,theta2) @j ==> #i = #j"
+
+lemma expiry_enforced:
+  "All R V pkT nonce theta #i #j.
+     ChallengeExpired(R,V,pkT,nonce) @i
+     & TokenAccepted(R,V,pkT,nonce,theta) @j ==> F"
+
+end

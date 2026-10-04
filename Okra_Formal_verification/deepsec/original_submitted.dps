@@ -1,0 +1,46 @@
+free att.    free sk.     fun sign/2.
+fun pk/1.    fun true/0.  fun false/0.
+fun blind/2. fun hash/1.  fun unblind/2.
+
+reduc checksign(sign(x,y),x,pk(y))=true;
+   checksign(unblind(sign(blind(x,y),z),y),x,pk(z))=true.
+
+let AttestLeft(pid) =
+   in(pid, both);
+   let (x,y) = both in
+   let (AK,AK_hash,uct) = x in
+   new nonce_report; new blinder;
+   out(att, (AK_hash,uct,blind(nonce_report,blinder)));
+
+   in(att, btk);
+   let utk = unblind(btk,blinder) in
+   if checksign(utk,nonce_report,pk(sk)) = true then out(pid,((AK,nonce_report,utk),y)).
+
+let AttestRight(pid) =
+   in(pid, both );
+   let (x, y) = both in
+   let (AK2,AK_hash,uct) = y in
+   new nonce_report; new blinder;
+   out(att,(AK_hash,uct,blind(nonce_report,blinder)));
+
+   in(att, btk);
+   let utk = unblind(btk,blinder) in
+   if checksign(utk,nonce_report,pk(sk)) = true then out(pid, (x,(AK2,nonce_report,utk))).
+
+let Init(pid) =
+   new AK;  new blinder;
+   new AK2; new blinder2;
+   out(pid, ((AK,hash(AK),unblind(sign(blind(hash(AK),blinder),sk),blinder)), AK2,hash(AK2),unblind(sign(blind(hash(AK2),blinder2),sk),blinder2)))).
+
+let Left =
+   new pid;
+ (Init(pid)
+ | (!^8 AttestRight(pid))
+ | (!^8 AttestRight(pid))).
+
+let Right =
+   new pid;
+ (Init(pid)
+ | (!^8 AttestLeft(pid))
+ | (!^8 AttestRight(pid))).
+query trace_equiv(Left,Right).
